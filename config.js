@@ -1,6 +1,7 @@
 /* MekoShop central config — EDIT THESE */
 window.MEKO_CONFIG = {
-  OWNER_EMAILS: ["you@example.com"], // <-- PUT YOUR EMAIL HERE: auto-admin + receives admin-request mails
+  OWNER_EMAILS: ["marktamer2005@gmail.com"], // owner = auto-admin + receives admin-request mails
+  SUPPORT_EMAIL: "marktamer2005@gmail.com"
   TAX_RATE: 0.14,            // 14% VAT (change as needed)
   CURRENCY: "$",
   FREE_SHIP: 50, SHIP_FEE: 4.99,
@@ -9,7 +10,6 @@ window.MEKO_CONFIG = {
   // Real billing: paste your links (no backend needed)
   STRIPE_PAYMENT_LINK: "",   // e.g. https://buy.stripe.com/xxxxx (Stripe Dashboard > Payment Links)
   PAYPAL_ME: "",              // e.g. https://paypal.me/yourshop
-  SUPPORT_EMAIL: "support@mekoshop.com"
 };
 // runtime overrides from Admin>Settings (localStorage + RTDB)
 try{const s=JSON.parse(localStorage.getItem("meko_settings")||"null");if(s)window.MEKO_CONFIG={...window.MEKO_CONFIG,...s}}catch(e){}
