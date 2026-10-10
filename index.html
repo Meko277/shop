@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MekoShop - Shop Like Amazon & Noon</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="top-strip">Free delivery over $50 | Flash Sale up to 70% off <span id="top-count"></span> <a href="#deals">Shop Now</a></div>
+<header class="header">
+<div class="header-main">
+<a class="logo" href="index.html">Meko<span>Shop</span><small>.com</small></a>
+<div class="deliver"><i class="fa fa-location-dot"></i><div><small>Deliver to</small><br><b>Cairo</b></div></div>
+<div class="searchbar">
+<select id="search-cat"><option value="">All</option></select>
+<input id="search-input" placeholder="Search products, brands...">
+<button id="search-btn"><i class="fa fa-search"></i></button>
+<div id="search-suggest" class="suggest"></div>
+</div>
+<div class="h-actions">
+<a href="admin.html" class="h-link"><i class="fa fa-user-shield"></i><span>Admin</span></a>
+<button class="h-link" id="wishlist-btn"><i class="fa fa-heart"></i><span>Wishlist</span><b id="wish-count">0</b></button>
+<button class="h-link" id="orders-btn"><i class="fa fa-box"></i><span>Orders</span></button>
+<button class="h-link cart-link" id="cart-btn"><i class="fa fa-cart-shopping"></i><b id="cart-count">0</b><span>Cart</span></button>
+</div>
+</div>
+<nav class="subnav">
+<button id="menu-btn"><i class="fa fa-bars"></i> All</button>
+<div id="cat-links" class="cat-links"></div>
+<div class="subnav-right"><a href="#deals">Flash Deals</a><a href="admin.html">Sell on Meko</a></div>
+</div>
+</header>
+<div id="side-menu" class="side-menu">
+<div class="side-head"><span><i class="fa fa-circle-user"></i> Hello, Sign In</span><button id="side-close">x</button></div>
+<div class="side-body"><h4>Shop by Category</h4><div id="side-cats"></div><h4>Help</h4><a href="#">Track Order</a><a href="admin.html">Admin Panel</a></div>
+</div>
+<div id="overlay" class="overlay"></div>
+<main>
+<section class="hero">
+<div class="hero-slider" id="hero-slider">
+<div class="slide active" style="background:linear-gradient(100deg,#131921 40%,#febd69)"><div><h1>MEGA SALE<br>Up to 70% OFF</h1><p>Electronics, Fashion and Home Essentials</p><button onclick="scrollToProducts()">Shop Deals</button></div><img src="https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=600" alt=""></div>
+<div class="slide" style="background:linear-gradient(100deg,#3a0ca3,#f72585)"><div><h1>Express Delivery<br>Same Day</h1><p>Noon-style fast shipping in your city</p><button onclick="scrollToProducts()">Order Now</button></div><img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600" alt=""></div>
+<div class="slide" style="background:linear-gradient(100deg,#0a2540,#00d4ff)"><div><h1>NEW TECH<br>Arrivals 2026</h1><p>Phones, Laptops and Accessories</p><button onclick="scrollToProducts()">Explore</button></div><img src="https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600" alt=""></div>
+</div>
+<div class="hero-dots" id="hero-dots"></div>
+<button class="hero-arrow left" id="hero-prev">‹</button>
+<button class="hero-arrow right" id="hero-next">›</button>
+</section>
+<section class="cats-row" id="cats-row"></section>
+<section class="deals-bar" id="deals">
+<div class="deals-head"><h2>⚡ Flash Deals</h2><div class="timer"><span id="dh">05</span>:<span id="dm">59</span>:<span id="ds">59</span></div><a href="#products">See all</a></div>
+<div class="h-scroll" id="deals-row"></div>
+</section>
+<section class="toolbar" id="products">
+<h2 id="grid-title">Recommended For You</h2>
+<div class="filters">
+<select id="filter-cat"><option value="">All Categories</option></select>
+<select id="filter-sort"><option value="pop">Sort: Popular</option><option value="low">Price: Low to High</option><option value="high">Price: High to Low</option><option value="rating">Top Rated</option><option value="discount">Biggest Discount</option></select>
+<div class="modal" id="product-modal"><div class="modal-box"><button class="x" data-close>×</button><div id="p-detail"></div></div></div>
+<div class="drawer" id="cart-drawer"><div class="d-head"><h3>🛒 Cart (<span id="d-count">0</span>)</h3><button data-close>×</button></div><div class="d-ship"><div class="bar"><div id="ship-fill"></div></div><p id="ship-msg"></p></div><div class="d-items" id="cart-items"></div><div class="d-foot"><div class="row"><span>Subtotal</span><b id="cart-total">$0.00</b></div><div class="row"><span>Shipping</span><b id="ship-cost">Free</b></div><button class="btn-primary" id="checkout-btn">Proceed to Checkout →</button><button class="btn-ghost" data-close>Continue Shopping</button></div></div>
+<div class="modal" id="checkout-modal"><div class="modal-box wide"><button class="x" data-close>×</button><div class="co-grid"><div><h3>1. Shipping Address</h3><div class="form"><input id="co-name" placeholder="Full Name"><input id="co-phone" placeholder="Phone"><input id="co-city" placeholder="City"><input id="co-address" placeholder="Street / Building / Apartment"></div><h3>2. Payment Method</h3><label class="pay-opt"><input type="radio" name="pay" value="cod" checked> 💵 Cash on Delivery</label><label class="pay-opt"><input type="radio" name="pay" value="card"> 💳 Credit / Debit Card<div class="card-fields"><input id="cc-num" placeholder="4111 1111 1111 1111" maxlength="19"><div class="two"><input id="cc-exp" placeholder="MM/YY" maxlength="5"><input id="cc-cvc" placeholder="CVC" maxlength="4"></div><input id="cc-name" placeholder="Name on card"></div></label><label class="pay-opt"><input type="radio" name="pay" value="paypal"> 🅿 PayPal</label></div><div class="co-side"><h3>Order Summary</h3><div id="co-items"></div><div class="row"><span>Items</span><b id="co-sub"></b></div><div class="row"><span>Shipping</span><b id="co-ship"></b></div><div class="row total"><span>Total</span><b id="co-total"></b></div><input id="coupon" placeholder="Coupon (try MEKO10)"><button class="btn-primary" id="place-order">Place Order 🔒</button><p class="secure">🔒 256-bit SSL • COD + Card + PayPal</p></div></div></div></div>
+<div class="modal" id="success-modal"><div class="modal-box center"><div class="big-check">✓</div><h2>Order Placed! 🎉</h2><p id="success-txt"></p><div class="two-btns"><button class="btn-primary" data-close>Continue Shopping</button><button class="btn-ghost" id="track-btn">Track My Order</button></div></div></div>
+<div class="modal" id="list-modal"><div class="modal-box wide"><button class="x" data-close>×</button><h2 id="list-title">My List</h2><div id="list-body"></div></div></div>
+<div class="toast" id="toast"></div>
+<script src="store.js"></script>
+</body>
+</html>
+
+<div class="price-f"><input id="min-p" type="number" placeholder="Min"><span>-</span><input id="max-p" type="number" placeholder="Max"><button id="price-go">Go</button></div>
+</div>
+<div class="grid" id="product-grid"></div>
+</section>
+<section class="perks"><div><i class="fa fa-truck-fast"></i><b>Fast Delivery</b><br><small>Same-day and next-day</small></div><div><i class="fa fa-shield-halved"></i><b>Buyer Protection</b><br><small>100% secure payments</small></div><div><i class="fa fa-rotate-left"></i><b>Easy Returns</b><br><small>15-day free returns</small></div><div><i class="fa fa-headset"></i><b>24/7 Support</b><br><small>Always here to help</small></div></section>
+</main>
+<footer><div class="f-cols"><div><h4>MekoShop</h4><a href="#">About</a><a href="#">Careers</a><a href="admin.html">Sell With Us</a></div><div><h4>Customer Service</h4><a href="#">Help Center</a><a href="#">Track Order</a><a href="#">Returns</a></div><div><h4>Payments</h4><div class="pay-icons"><i class="fa-brands fa-cc-visa"></i><i class="fa-brands fa-cc-mastercard"></i><i class="fa-brands fa-cc-paypal"></i><i class="fa-solid fa-money-bill"></i></div></div><div><h4>Get App</h4><p style="font-size:13px;color:#ddd">Shop faster on mobile</p></div></div><div class="f-bottom">© 2026 MekoShop.com — Amazon + Noon style clone</div></footer>
+
