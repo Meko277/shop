@@ -14,10 +14,10 @@ autoGate();
 $("login-btn").onclick=adminLogin;
 $("legacy-btn").onclick=doLegacy;$("p").addEventListener("keydown",e=>{if(e.key==="Enter")doLegacy()});
 $("logout").onclick=()=>{sessionStorage.removeItem("meko_admin");location.reload()};
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");["products","add","orders","users","mail","maillog","settings"].forEach(t=>$("tab-"+t).style.display=t===b.dataset.t?"block":"none")});
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");["products","add","orders","sellers","users","coupons","mail","maillog","audit","settings"].forEach(t=>$("tab-"+t).style.display=t===b.dataset.t?"block":"none")});
 $("f-file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{upImg=ev.target.result;$("preview").src=upImg;$("preview").style.display="block"};r.readAsDataURL(f)};
 $("save-p").onclick=saveProduct;$("cancel-e").onclick=()=>{editId=null;$("form-title").textContent="Add Product";["f-name","f-cat","f-price","f-old","f-stock","f-rating","f-img","f-desc"].forEach(i=>$(i).value="")};
-$("send-note").onclick=sendNote;$("save-settings").onclick=saveSettings;loadSettings();syncAdminCloud();
+$("send-note").onclick=sendNote;$("save-settings").onclick=saveSettings;$("cp-save").onclick=saveCoupon;loadSettings();syncAdminCloud();
 });
 async function autoGate(){if(sessionStorage.getItem("meko_admin")==="1")return showAdmin();
 try{const u=typeof currentUser==="function"?currentUser():null;if(u&&(u.role==="admin"||roleOf(u.email)==="admin")){sessionStorage.setItem("meko_admin","1");return showAdmin()}}catch(e){}}
@@ -35,8 +35,8 @@ function showAdmin(){$("login-view").style.display="none";$("admin-view").style.
 function render(){const P=getP(),O=getO();
 $("s-rev").textContent=money(O.reduce((s,x)=>s+x.total,0));$("s-ord").textContent=O.length;$("s-pro").textContent=P.length;$("s-stock").textContent=P.reduce((s,x)=>s+(+x.stock||0),0);
 $("p-rows").innerHTML=P.map(p=>`<tr><td><img src="${p.img}" onerror="this.src='https://via.placeholder.com/50'"></td><td>${p.name.slice(0,35)}</td><td>${p.cat}</td><td>${money(p.price)}</td><td>${p.stock}</td><td><button class="btn btn-e" onclick="editP('${p.id}')">Edit</button> <button class="btn btn-d" onclick="delP('${p.id}')">Del</button></td></tr>`).join("");
-$("o-list").innerHTML=O.length?O.map(o=>`<div style="border:1px solid #ddd;border-radius:10px;padding:12px;margin:8px 0"><b>${o.id}</b> — ${o.name} (${o.phone}) ${o.paid?'<span style="background:#dcfce7;padding:2px 8px;border-radius:10px;font-size:11px">PAID</span>':""}<br><small>${o.date} • ${o.city} • ${o.items.reduce((s,i)=>s+i.qty,0)} items • <b>${money(o.total)}</b> • ${String(o.pay).toUpperCase()}${o.email?` • ${o.email}`:""}</small><br><small>${o.items.map(i=>i.name.slice(0,30)+" x"+i.qty).join(", ")}</small><br><div style="margin-top:8px"><select id="st-${o.id}">${["Pending","Paid","Shipped","Delivered","Cancelled"].map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}</select> <button class="btn btn-e" onclick="setStatus('${o.id}')">Update</button> <button class="btn btn-e" onclick="printInvoice('${o.id}')">Invoice</button> <button class="btn btn-d" onclick="delO('${o.id}')">Delete</button></div></div>`).join(""):"<p>No orders yet.</p>";
-renderUsers();renderMail();renderMailLog();
+$("o-list").innerHTML=O.length?O.map(o=>`<div style="border:1px solid #ddd;border-radius:10px;padding:12px;margin:8px 0"><b>${o.id}</b> — ${o.name} (${o.phone}) ${o.paid?'<span style="background:#dcfce7;padding:2px 8px;border-radius:10px;font-size:11px">PAID</span>':""}<br><small>${o.date} • ${o.city} • ${o.items.reduce((s,i)=>s+i.qty,0)} items • <b>${money(o.total)}</b> • ${String(o.pay).toUpperCase()}${o.email?` • ${o.email}`:""}</small><br><small>${o.items.map(i=>i.name.slice(0,30)+" x"+i.qty).join(", ")}</small><br><div style="margin-top:8px"><select id="st-${o.id}">${["Pending","Pending payment","Paid","Processing","Shipped","Delivered","Cancelled","Return requested","Returned","Refunded"].map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}</select> <button class="btn btn-e" onclick="setStatus('${o.id}')">Update</button> <button class="btn btn-e" onclick="printInvoice('${o.id}')">Invoice</button> <button class="btn btn-d" onclick="delO('${o.id}')">Delete</button></div></div>`).join(""):"<p>No orders yet.</p>";
+renderUsers();renderSellers();renderCoupons();renderMail();renderMailLog();renderAudit();
 }
 function saveProduct(){const name=$("f-name").value.trim();if(name.length<3)return toast("Enter name");const price=+$("f-price").value;if(!(price>0))return toast("Enter price");
 const P=getP();const img=upImg||$("f-img").value.trim()||"https://via.placeholder.com/600x400?text=Product";
@@ -87,12 +87,26 @@ if($("s-stripe"))$("s-stripe").value=c.STRIPE_PAYMENT_LINK||"";
 if($("s-paypal"))$("s-paypal").value=c.PAYPAL_ME||"";
 if($("s-tax"))$("s-tax").value=c.TAX_RATE??0.14;
 if($("s-ship"))$("s-ship").value=c.SHIP_FEE??4.99;
+if($("s-com"))$("s-com").value=c.COMMISSION_RATE??0.10;
 }catch(e){}}
 function saveSettings(){const c=cfg();
-const upd={OWNER_EMAILS:[$("s-owner").value.trim()].filter(Boolean),EMAILJS:{PUBLIC_KEY:$("s-public").value.trim(),SERVICE_ID:$("s-service").value.trim(),TEMPLATE_ID:$("s-template").value.trim()},STRIPE_PAYMENT_LINK:$("s-stripe").value.trim(),PAYPAL_ME:$("s-paypal").value.trim(),TAX_RATE:+$("s-tax").value||0,SHIP_FEE:+$("s-ship").value||0};
+const upd={OWNER_EMAILS:[$("s-owner").value.trim()].filter(Boolean),EMAILJS:{PUBLIC_KEY:$("s-public").value.trim(),SERVICE_ID:$("s-service").value.trim(),TEMPLATE_ID:$("s-template").value.trim()},STRIPE_PAYMENT_LINK:$("s-stripe").value.trim(),PAYPAL_ME:$("s-paypal").value.trim(),TAX_RATE:+$("s-tax").value||0,SHIP_FEE:+$("s-ship").value||0,COMMISSION_RATE:+$("s-com").value||0};
 window.MEKO_CONFIG={...c,...upd};localStorage.setItem("meko_settings",JSON.stringify(upd));
 const db=fbDb();if(db){try{db.ref("settings").set(upd)}catch(e){}}
-initEmailJS();toast("Settings saved ✅");loadSettings()}
+saveSettingsCloud(upd);audit("settings.save",(currentUser()||{}).email||"admin","settings");
+initEmailJS();toast("Settings saved");loadSettings()}
+function renderSellers(){const el=$("seller-list");if(!el)return;const s=getSellers();
+el.innerHTML=s.length?s.map(x=>`<div style="border:1px solid #eee;border-radius:8px;padding:8px;margin:6px 0;font-size:13px"><b>${x.storeName}</b> ${x.name} ${x.email} — <b>${x.status}</b><br><small>${x.phone||""} ${x.city||""}</small><br><button class="btn btn-e" onclick="sellerApprove('${x.email}')">Approve</button> <button class="btn" onclick="sellerSuspend('${x.email}')">Suspend</button> <button class="btn btn-d" onclick="sellerReject('${x.email}')">Reject</button></div>`).join(""):"No seller applications";
+const cr=$("com-rate");if(cr)cr.textContent=(commissionRate()*100)+"%";
+let so=[];try{so=JSON.parse(localStorage.getItem("meko_sellerOrders")||"[]")}catch(e){}
+const cl=$("com-list");if(cl)cl.innerHTML=so.length?so.slice(0,20).map(o=>`<div style="font-size:12px;border-bottom:1px solid #eee;padding:6px 0">${o.orderId} → ${o.seller}: sub ${money(o.sub)} com ${money(o.commission)} payout ${money(o.payout)} (${o.status})</div>`).join(""):"No commissions yet"}
+async function sellerApprove(email){let a=getSellers();const f=a.find(x=>x.email===email);if(f){f.status="approved";localStorage.setItem("meko_sellers",JSON.stringify(a))}await setSellerStatus(email,"approved");renderSellers()}
+async function sellerSuspend(email){await setSellerStatus(email,"suspended");let a=getSellers();const f=a.find(x=>x.email===email);if(f){f.status="suspended";localStorage.setItem("meko_sellers",JSON.stringify(a))}renderSellers()}
+async function sellerReject(email){await setSellerStatus(email,"rejected");localStorage.setItem("meko_sellers",JSON.stringify(getSellers().filter(x=>x.email!==email)));renderSellers()}
+function renderCoupons(){const el=$("cp-list");if(!el)return;let extra=[];try{extra=JSON.parse(localStorage.getItem("meko_coupons")||"[]")}catch(e){}
+el.innerHTML=getCoupons().map(c=>`<div style="font-size:13px;border:1px solid #eee;border-radius:8px;padding:8px;margin:6px 0"><b>${c.code}</b> ${c.pct}% min ${money(c.min||0)} ${c.exp?"exp "+new Date(c.exp).toLocaleDateString():""}</div>`).join("")}
+async function saveCoupon(){const code=$("cp-code").value.trim().toUpperCase();if(!code)return toast("Code?");const c={code,pct:+$("cp-pct").value||10,min:+$("cp-min").value||0,exp:$("cp-exp").value?new Date($("cp-exp").value).getTime():0};let extra=[];try{extra=JSON.parse(localStorage.getItem("meko_coupons")||"[]")}catch(e){}extra=extra.filter(x=>x.code!==code);extra.unshift(c);localStorage.setItem("meko_coupons",JSON.stringify(extra));await fsSet("coupons",code,c);await audit("coupon.save",(currentUser()||{}).email,code);renderCoupons();toast("Coupon saved")}
+function renderAudit(){const el=$("audit-list");if(!el)return;let a=[];try{a=JSON.parse(localStorage.getItem("meko_audit")||"[]")}catch(e){}el.innerHTML=a.length?a.slice(0,100).map(x=>`<div style="font-size:12px;border-bottom:1px solid #eee;padding:6px 0">${new Date(x.at).toLocaleString()} — <b>${x.action}</b> by ${x.by} <small>${x.detail||""}</small></div>`).join(""):"No audit yet"}
 function delNote(i){const n=getNotes();n.splice(i,1);saveNotes(n);renderMail()}
 function pushProducts(){const db=fbDb();if(!db)return;try{db.ref("products").set(getP())}catch(e){}}
 function syncAdminCloud(){renderMail();renderUsers();renderMailLog();try{const db=fbDb();if(!db)return;

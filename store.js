@@ -27,12 +27,12 @@ const saveWish=w=>localStorage.setItem("meko_wish",JSON.stringify(w));
 const getOrders=()=>{try{return JSON.parse(localStorage.getItem("meko_orders")||"[]")}catch(e){return[]}};
 const saveOrders=o=>localStorage.setItem("meko_orders",JSON.stringify(o));
 if(!localStorage.getItem("meko_products"))saveProducts(DEFAULT_PRODUCTS);
-let state={cat:"",q:"",sort:"pop",min:0,max:0};
+let state={cat:"",brand:"",q:"",sort:"pop",min:0,max:0,stock:false,minR:0,page:1};
 function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)}
 function stars(r){let s="";for(let i=1;i<=5;i++)s+=i<=Math.round(r)?"★":"☆";return s}
 function disc(p){return p.old>p.price?Math.round((1-p.price/p.old)*100):0}
 function cardHTML(p){const d=disc(p);const w=getWish().includes(p.id);
-return `<div class="card"><div class="img" onclick="quickView('${p.id}')">${d?`<span class="badge">-${d}%</span>`:(p.badge?`<span class="badge">${p.badge}</span>`:"")}<img loading="lazy" src="${p.img}" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'"><button class="wish ${w?"liked":""}" onclick="event.stopPropagation();toggleWish('${p.id}')">♥</button></div><div class="card-body"><h4 onclick="quickView('${p.id}')">${p.name}</h4><div class="stars">${stars(p.rating)} <small>${p.rating} (${p.reviews})</small></div><div class="price-row"><span class="price">${money(p.price)}</span>${p.old>p.price?`<span class="old">${money(p.old)}</span>`:""}</div><small class="prime">✓ prime FREE delivery</small><button class="add" onclick="addToCart('${p.id}')">Add to Cart</button></div></div>`}
+return `<div class="card"><div class="img" onclick="location.href='product.html?id=${p.id}'">${d?`<span class="badge">-${d}%</span>`:(p.badge?`<span class="badge">${p.badge}</span>`:"")}<img loading="lazy" src="${p.img}" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'"><button class="wish ${w?"liked":""}" onclick="event.stopPropagation();toggleWish('${p.id}')">♥</button></div><div class="card-body"><h4 onclick="location.href='product.html?id=${p.id}'">${p.name}</h4><div class="stars">${stars(p.rating)} <small>${p.rating} (${p.reviews})</small></div><div class="price-row"><span class="price">${money(p.price)}</span>${p.old>p.price?`<span class="old">${money(p.old)}</span>`:""}</div><small class="prime">✓ ${p.stock>0?"In stock • fast delivery":"Out of stock"}</small><button class="add" onclick="addToCart('${p.id}')">Add to Cart</button></div></div>`}
 function renderAll(){const P=getProducts();
 const cats=[...new Set(P.map(p=>p.cat))];
 $("search-cat").innerHTML='<option value="">All</option>'+cats.map(c=>`<option>${c}</option>`).join("");
@@ -41,10 +41,12 @@ $("cat-links").innerHTML=cats.map(c=>`<a href="#" onclick="filterCat('${c}');ret
 $("side-cats").innerHTML=cats.map(c=>`<a href="#" onclick="filterCat('${c}');return false">${c}</a>`).join("");
 const CIM={Electronics:"https://images.unsplash.com/photo-1498049794561-7780e7231661?w=200",Fashion:"https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=200",Home:"https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200",Toys:"https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=200",Beauty:"https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200"};
 $("cats-row").innerHTML=cats.map(c=>`<div class="cat-card" onclick="filterCat('${c}')"><img src="${CIM[c]||'https://via.placeholder.com/200?text='+c}"><b>${c}</b></div>`).join("");
-let list=P.filter(p=>(!state.cat||p.cat===state.cat)&&(!state.q||(p.name+" "+p.cat).toLowerCase().includes(state.q))&&(!state.min||p.price>=state.min)&&(!state.max||p.price<=state.max));
-if(state.sort==="low")list.sort((a,b)=>a.price-b.price);else if(state.sort==="high")list.sort((a,b)=>b.price-a.price);else if(state.sort==="rating")list.sort((a,b)=>b.rating-a.rating);else if(state.sort==="discount")list.sort((a,b)=>disc(b)-disc(a));
-$("grid-title").textContent=state.q?`Results for "${state.q}" (${list.length})`:state.cat?state.cat:`Recommended For You (${list.length})`;
-$("product-grid").innerHTML=list.length?list.map(cardHTML).join(""):"<p>No products found. <a href='admin.html'>Add some in Admin</a></p>";
+let list=P.filter(p=>(p.status||"active")==="active").filter(p=>(!state.cat||p.cat===state.cat)&&(!state.brand||(p.brand||"")===state.brand)&&(!state.q||(p.name+" "+p.cat+" "+(p.brand||"")).toLowerCase().includes(state.q))&&(!state.min||p.price>=state.min)&&(!state.max||p.price<=state.max)&&(!state.stock||p.stock>0)&&(!state.minR||p.rating>=state.minR));
+if(state.sort==="low")list.sort((a,b)=>a.price-b.price);else if(state.sort==="high")list.sort((a,b)=>b.price-a.price);else if(state.sort==="rating")list.sort((a,b)=>b.rating-a.rating);else if(state.sort==="discount")list.sort((a,b)=>disc(b)-disc(a));else if(state.sort==="new")list.sort((a,b)=>(b.at||0)-(a.at||0));
+$("grid-title").textContent=state.q?`Results for "${state.q}" (${list.length})`:state.cat?state.cat:`Recommended (${list.length})`;
+const shown=list.slice(0,(state.page||1)*12);
+$("product-grid").innerHTML=shown.length?shown.map(cardHTML).join(""):`<div style="grid-column:1/-1;text-align:center;padding:30px"><h3>No products found</h3><button class="hbtn" onclick="clearFilters()">Clear filters</button></div>`;
+const lm=$("load-more");if(lm)lm.style.display=list.length>shown.length?"":"none";
 $("deals-row").innerHTML=P.filter(p=>disc(p)>=20).map(p=>`<div class="deal-card" onclick="quickView('${p.id}')"><img src="${p.img}"><br><span class="off">-${disc(p)}%</span> <b>Deal</b><div class="price">${money(p.price)}</div><small>${p.name.slice(0,32)}...</small></div>`).join("")||"<p>No deals yet</p>";
 function renderCart(){const P=getProducts(),c=getCart();const box=$("cart-items");if(!c.length){box.innerHTML="<p style='text-align:center;padding:30px;color:#888'>Your cart is empty 🛒</p>"}else{box.innerHTML=c.map(i=>{const p=P.find(x=>x.id===i.id);if(!p)return"";return `<div class="c-item"><img src="${p.img}"><div class="inf"><b>${p.name.slice(0,45)}</b><span class="price">${money(p.price)}</span><div class="mini-qty"><button onclick="chQty('${p.id}',-1)">-</button><span>${i.qty}</span><button onclick="chQty('${p.id}',1)">+</button><button class="rm" onclick="rmItem('${p.id}')">Remove</button></div></div></div>`}).join("")}
 const sub=c.reduce((s,i)=>{const p=P.find(x=>x.id===i.id);return s+(p?p.price*i.qty:0)},0);
@@ -98,26 +100,38 @@ let heroI=0;function heroGo(n){const s=document.querySelectorAll(".slide");heroI
 function tick(){let h=+$("dh").textContent,m=+$("dm").textContent,s=+$("ds").textContent;if(--s<0){s=59;if(--m<0){m=59;if(--h<0)h=5}}$("dh").textContent=String(h).padStart(2,"0");$("dm").textContent=String(m).padStart(2,"0");$("ds").textContent=String(s).padStart(2,"0");const t=`${$("dh").textContent}:${$("dm").textContent}:${$("ds").textContent}`;if($("top-count"))$("top-count").textContent="ends in "+t}
 document.addEventListener("click",e=>{if(e.target.hasAttribute("data-close"))closeAll()});
 window.addEventListener("DOMContentLoaded",()=>{
-renderAll();renderCart();heroGo(0);setInterval(()=>heroGo(heroI+1),5000);setInterval(tick,1000);
+try{const q=new URLSearchParams(location.search).get("q");if(q){state.q=q.slice(0,80);const si=$("search-input");if(si)si.value=q}}catch(e){}
+renderAll();renderCart();try{pullCatalog()}catch(e){}heroGo(0);setInterval(()=>heroGo(heroI+1),5000);setInterval(tick,1000);
 $("cart-btn").onclick=()=>{$("cart-drawer").classList.add("open");$("overlay").classList.add("show")};
 $("menu-btn").onclick=()=>{$("side-menu").classList.add("open");$("overlay").classList.add("show")};
 $("side-close").onclick=closeAll;$("overlay").onclick=closeAll;
 $("checkout-btn").onclick=()=>{closeAll();openCheckout()};
-$("place-order").onclick=placeOrder;$("coupon").oninput=refreshTotals;
-$("wishlist-btn").onclick=()=>showList("wish");$("orders-btn").onclick=()=>showList("orders");
-$("track-btn").onclick=()=>{closeAll();showList("orders")};
-$("filter-cat").onchange=e=>{state.cat=e.target.value;renderAll()};
-$("filter-sort").onchange=e=>{state.sort=e.target.value;renderAll()};
+$("place-order").onclick=placeOrder;const _cp=$("coupon");if(_cp)_cp.oninput=refreshTotals;
+$("wishlist-btn").onclick=()=>showList("wish");$("orders-btn").onclick=()=>showOrdersWithInvoices();
+const _tb=$("track-btn");if(_tb)_tb.onclick=()=>{closeAll();showOrdersWithInvoices()};
+$("filter-cat").onchange=e=>{state.cat=e.target.value;state.page=1;renderAll()};
+$("filter-sort").onchange=e=>{state.sort=e.target.value;state.page=1;renderAll()};
+const _fbr=$("filter-brand");if(_fbr)_fbr.onchange=e=>{state.brand=e.target.value;state.page=1;renderAll()};
+const _fst=$("filter-stock");if(_fst)_fst.onchange=e=>{state.stock=e.target.checked;state.page=1;renderAll()};
+const _frt=$("filter-rating");if(_frt)_frt.onchange=e=>{state.minR=+e.target.value;state.page=1;renderAll()};
+const _fc=$("filter-clear");if(_fc)_fc.onclick=()=>clearFilters();
+const _lm=$("load-more");if(_lm)_lm.onclick=()=>{state.page++;renderAll()};
 const _pg=$("price-go");if(_pg)_pg.onclick=()=>{state.min=+$("min-p").value||0;state.max=+$("max-p").value||0;renderAll()};
 $("hero-prev").onclick=()=>heroGo(heroI-1);$("hero-next").onclick=()=>heroGo(heroI+1);
-$("search-btn").onclick=()=>{state.q=$("search-input").value.toLowerCase().trim();state.cat=$("search-cat").value;renderAll();scrollToProducts()};
-$("search-input").addEventListener("input",e=>{const q=e.target.value.toLowerCase();const box=$("search-suggest");if(!box)return;if(q.length<2){box.style.display="none";return};
-const m=getProducts().filter(p=>p.name.toLowerCase().includes(q)).slice(0,6);
+$("search-btn").onclick=()=>{state.q=$("search-input").value.toLowerCase().trim().slice(0,80);state.cat=$("search-cat").value;state.page=1;try{history.replaceState(null,"","index.html?q="+encodeURIComponent(state.q))}catch(e){}renderAll();scrollToProducts()};
+$("search-input").addEventListener("input",e=>{const q=e.target.value.toLowerCase().slice(0,80);const box=$("search-suggest");if(!box)return;if(q.length<2){box.style.display="none";return};
+const m=getProducts().filter(p=>(p.status||"active")==="active"&&p.name.toLowerCase().includes(q)).slice(0,6);
 box.innerHTML=m.map(p=>`<div onclick="document.getElementById('search-input').value='${p.name.replace(/'/g,"")}';document.getElementById('search-btn').click()">${p.name.slice(0,50)}</div>`).join("")||"<div>No matches</div>";box.style.display="block"});
 const _cn=$("cc-num");if(_cn)_cn.addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,16).replace(/(\d{4})(?=\d)/g,"$1 ")});
 const _ce=$("cc-exp");if(_ce)_ce.addEventListener("input",e=>{let v=e.target.value.replace(/\D/g,"").slice(0,4);if(v.length>2)v=v.slice(0,2)+"/"+v.slice(2);e.target.value=v});
 });
-function filterCat(c){state.cat=c;state.q="";$("search-input").value="";renderAll();document.getElementById("products").scrollIntoView({behavior:"smooth"})}
+function filterCat(c){state.cat=c;state.brand="";state.q="";state.page=1;const s=$("search-input");if(s)s.value="";renderAll();document.getElementById("products").scrollIntoView({behavior:"smooth"})}
+function filterBrand(b){state.brand=b;state.page=1;renderAll();document.getElementById("products").scrollIntoView({behavior:"smooth"})}
+function clearFilters(){state={cat:"",brand:"",q:"",sort:"pop",min:0,max:0,stock:false,minR:0,page:1};const s=$("search-input");if(s)s.value="";renderAll()}
+async function pullCatalog(){try{
+const cloud=await fsQuery("products",[],100);if(cloud.length){const local=getProducts();const merged=[...cloud.map(c=>({id:c.id,...c})),...local.filter(l=>!cloud.find(c=>c.id===l.id))];localStorage.setItem("meko_products",JSON.stringify(merged));renderAll()}
+await syncCats();await loadSettingsCloud();renderAll();
+}catch(e){}}
 function scrollToProducts(){document.getElementById("products").scrollIntoView({behavior:"smooth"})}
 function toggleWish(id){let w=getWish();w=w.includes(id)?w.filter(x=>x!==id):[...w,id];saveWish(w);renderAll();toast(w.includes(id)?"Added to wishlist ♥":"Removed from wishlist")}
 function addToCart(id,qty=1){const P=getProducts();const p=P.find(x=>x.id===id);if(!p)return;if(p.stock<=0)return toast("Out of stock");let c=getCart();const f=c.find(x=>x.id===id);if(f)f.qty=Math.min(f.qty+qty,p.stock);else c.push({id,qty});saveCart(c);updateBadges();renderCart();toast("Added to cart 🛒")}

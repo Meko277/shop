@@ -1,7 +1,7 @@
 /* MekoShop central config — EDIT THESE */
 window.MEKO_CONFIG = {
   OWNER_EMAILS: ["marktamer2005@gmail.com"], // owner = auto-admin + receives admin-request mails
-  SUPPORT_EMAIL: "marktamer2005@gmail.com"
+  SUPPORT_EMAIL: "marktamer2005@gmail.com",
   TAX_RATE: 0.14,            // 14% VAT (change as needed)
   CURRENCY: "$",
   FREE_SHIP: 50, SHIP_FEE: 4.99,

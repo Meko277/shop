@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn() { return request.auth != null; }
+    function role() { return signedIn() && exists(/databases/$(db)/documents/roles/$(request.auth.uid)) ? get(/databases/$(db)/documents/roles/$(request.auth.uid)).data.role : 'customer'; }
+    function isAdmin() { return role() == 'admin'; }
+    function isOwner(userId) { return signedIn() && request.auth.uid == userId; }
+    function ownerEmail() { return signedIn() && request.auth.token.email.lower() == 'marktamer2005@gmail.com'.lower(); }
+    function sellerApproved() { return signedIn() && exists(/databases/$(db)/documents/sellers/$(request.auth.uid)) && get(/databases/$(db)/documents/sellers/$(request.auth.uid)).data.status == 'approved'; }
+
+    match /products/{id} {
+      allow read: if true;
+      allow create: if signedIn() && (sellerApproved() || isAdmin() || ownerEmail()) && request.resource.data.sellerEmail == request.auth.token.email;
+      allow update: if isAdmin() || ownerEmail() || (signedIn() && resource.data.sellerEmail == request.auth.token.email);
+      allow delete: if isAdmin() || ownerEmail();
+    }
+    match /categories/{id} { allow read: if true; allow write: if isAdmin() || ownerEmail(); }
+    match /coupons/{id} { allow read: if true; allow write: if isAdmin() || ownerEmail(); }
+    match /promotions/{id} { allow read: if true; allow write: if isAdmin() || ownerEmail(); }
+    match /reviews/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.email == request.auth.token.email && request.resource.data.rating >= 1 && request.resource.data.rating <= 5;
+      allow update, delete: if isAdmin() || ownerEmail();
+    }
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin() || ownerEmail();
+      allow create: if isOwner(uid);
+      allow update: if (isOwner(uid) && !('role' in request.resource.data)) || isAdmin() || ownerEmail();
+      allow delete: if false;
+    }
+    match /roles/{uid} { allow read: if isOwner(uid) || isAdmin() || ownerEmail(); allow write: if isAdmin() || ownerEmail(); }
+    match /sellers/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.email == request.auth.token.email;
+      allow update: if isAdmin() || ownerEmail();
+      allow delete: if isAdmin() || ownerEmail();
+    }
+    match /carts/{uid} { allow read, write: if isOwner(uid); }
+    match /wishlists/{uid} { allow read, write: if isOwner(uid); }
+    match /addresses/{uid} { allow read, write: if isOwner(uid); }
+    match /orders/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || resource.data.email == request.auth.token.email) || isAdmin() || ownerEmail();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isAdmin() || ownerEmail();
+      allow delete: if false;
+    }
+    match /sellerOrders/{id} { allow read: if isAdmin() || ownerEmail() || (signedIn() && resource.data.seller == request.auth.token.email); allow write: if isAdmin() || ownerEmail(); }
+    match /commissions/{id} { allow read: if isAdmin() || ownerEmail(); allow write: if isAdmin() || ownerEmail(); }
+    match /payouts/{id} { allow read: if isAdmin() || ownerEmail(); allow write: if isAdmin() || ownerEmail(); }
+    match /returns/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.by == request.auth.token.email;
+      allow update: if isAdmin() || ownerEmail();
+      allow delete: if false;
+    }
+    match /notifications/{id} { allow read: if true; allow write: if isAdmin() || ownerEmail(); }
+    match /settings/{id} { allow read: if true; allow write: if isAdmin() || ownerEmail(); }
+    match /auditLogs/{id} { allow read: if isAdmin() || ownerEmail(); allow create: if signedIn(); allow update, delete: if false; }
+  }
+}

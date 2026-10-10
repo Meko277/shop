@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MekoShop — Modern Mega Store</title>
-<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="motion.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div class="announce">✨ Mega Mid-Season Sale up to 70% OFF <span id="top-count"></span> <a href="#deals">Grab Deals</a></div>
@@ -25,22 +26,25 @@
 <div class="subnav"><div class="subnav-in"><button id="menu-btn"><i class="fa fa-bars"></i> Categories</button><div id="cat-links" class="cat-links"></div><div class="subnav-right"><a href="#deals">Flash Deals</a><a href="admin.html" id="admin-link" style="display:none">🛡️ Admin</a><a href="#" id="sell-link">Become a seller</a></div></div></div>
 </header>
 
-<div id="side-menu" class="side-menu"><div class="side-head"><span>Hello</span><button id="side-close">x</button></div><div class="side-body"><h4>Categories</h4><div id="side-cats"></div><h4>Account</h4><a href="#" id="side-login">Login / Register</a><a href="admin.html">Admin (pass 1234)</a></div></div>
+<div id="side-menu" class="side-menu"><div class="side-head"><span>Hello</span><button id="side-close">x</button></div><div class="side-body"><h4>Categories</h4><div id="side-cats"></div><h4>Account</h4><a href="#" id="side-login">Login / Register</a><a href="account.html">My Account</a><a href="seller.html">Sell on Meko</a><a href="admin.html" id="side-admin" style="display:none">Admin Panel</a><div style="margin-top:10px"><button class="hbtn" onclick="setLang(lang()==='en'?'ar':'en');return false">🌐 EN/عربي</button></div></div></div>
 <div id="overlay" class="overlay"></div>
 <div class="offer-bar"><div class="offer-card"><span style="font-size:26px">📩</span><div style="flex:1"><b>Exclusive offers by email</b><br><small>Coupons and flash sales</small></div><input id="offer-email" placeholder="you@mail.com" style="padding:10px;border-radius:10px;border:0;min-width:200px"><button class="btn-primary" style="width:auto;margin:0" id="offer-join">Join</button></div></div>
 <main>
 <div class="hero-wrap"><section class="hero"><div class="hero-slider" id="hero-slider">
 <div class="slide active"><div><h1>Tech Fest Sale</h1><p>Phones, laptops, audio up to 70% off</p><div class="pro-badges"><span>✓ Free returns</span><span>✓ 1-yr warranty</span><span>✓ COD</span></div><button onclick="scrollToProducts()">Shop now</button></div><img src="https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600"></div>
 <div class="slide"><div><h1>Same-Day Delivery</h1><p>Order by 6pm, get it tonight</p><button onclick="scrollToProducts()">Order now</button></div><img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600"></div>
+<div class="slide"><div><h1>Sell on Meko</h1><p>Open your store — 10% commission only on sales</p><button onclick="location.href='seller.html'">Start selling</button></div><img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600"></div>
 </div><button class="hero-arrow left" id="hero-prev">‹</button><button class="hero-arrow right" id="hero-next">›</button></section>
 <div class="hero-side"><div class="mini-banner b1"><b>Secure card payments</b><small>Stripe-ready</small></div><div class="mini-banner b2"><b>Coupon MEKO10</b><small>Extra 10% off</small></div></div></div>
 <section class="cats-row" id="cats-row"></section>
-
 <section class="deals-bar" id="deals"><div class="deals-head"><h2>Flash Deals</h2><div class="timer"><span id="dh">05</span>:<span id="dm">59</span>:<span id="ds">59</span></div><a href="#products">See all</a></div><div class="h-scroll" id="deals-row"></div></section>
-<section class="toolbar" id="products"><h2 id="grid-title">Recommended</h2><div class="filters"><select id="filter-cat"><option value="">All</option></select><select id="filter-sort"><option value="pop">Popular</option><option value="low">Low-High</option><option value="high">High-Low</option><option value="rating">Top Rated</option><option value="discount">Discount</option></select></div><div class="grid" id="product-grid"></div></section>
+<section class="toolbar" id="products"><h2 id="grid-title">Recommended</h2><div class="filters"><select id="filter-cat"><option value="">All</option></select><select id="filter-brand"><option value="">All brands</option></select><select id="filter-sort"><option value="pop">Popular</option><option value="new">Newest</option><option value="low">Low-High</option><option value="high">High-Low</option><option value="rating">Top Rated</option><option value="discount">Discount</option></select><label style="font-size:13px"><input type="checkbox" id="filter-stock" style="width:auto"> In stock only</label><label style="font-size:13px">Min ★ <select id="filter-rating"><option value="0">Any</option><option value="4">4+</option><option value="4.5">4.5+</option></select></label><button class="hbtn" id="filter-clear">Clear</button></div><div class="grid" id="product-grid"></div><div style="text-align:center;margin-top:12px"><button class="hbtn primary" id="load-more" style="display:none">Load more</button></div></section>
+<section class="toolbar" id="new-arr"><h2>✨ New Arrivals</h2><div class="h-scroll" id="new-row"></div></section>
+<section class="toolbar" id="best"><h2>🏆 Best Sellers</h2><div class="h-scroll" id="best-row"></div></section>
+<div class="brand-wall" id="brand-wall"></div>
 <section class="perks"><div><i class="fa fa-truck-fast"></i><b>Fast Delivery</b></div><div><i class="fa fa-shield-halved"></i><b>Secure Payments</b></div><div><i class="fa fa-rotate-left"></i><b>Easy Returns</b></div><div><i class="fa fa-headset"></i><b>24/7 Support</b></div></section>
 </main>
-<footer><div class="f-bottom">© 2026 MekoShop — modern mega store</div></footer>
+<footer><div class="f-cols"><div><h4>mekoshop</h4><a href="seller.html">Sell with us</a><a href="account.html">My account</a><a href="#deals">Deals</a></div><div><h4>Help</h4><a href="account.html">Track order</a><a href="account.html">Returns</a><a href="account.html">Support</a></div><div><h4>Payments</h4><div class="pay-icons"><i class="fa-brands fa-cc-visa"></i><i class="fa-brands fa-cc-mastercard"></i><i class="fa-brands fa-cc-paypal"></i><i class="fa-solid fa-money-bill"></i></div></div><div><h4>🌐 Language</h4><button class="hbtn" onclick="setLang('en')">English</button> <button class="hbtn" onclick="setLang('ar')">عربي</button></div></div><div class="f-bottom">© 2026 MekoShop — marketplace • support: marktamer2005@gmail.com</div></footer>
 <div class="modal" id="product-modal"><div class="modal-box"><button class="x" data-close>×</button><div id="p-detail"></div></div></div>
 <div class="drawer" id="cart-drawer"><div class="d-head"><h3>Bag (<span id="d-count">0</span>)</h3><button data-close>×</button></div><div class="d-ship"><div class="bar"><div id="ship-fill"></div></div><p id="ship-msg"></p></div><div class="d-items" id="cart-items"></div><div class="d-foot"><div class="row"><span>Subtotal</span><b id="cart-total">$0.00</b></div><button class="btn-primary" id="checkout-btn">Checkout</button><button class="btn-ghost" data-close>Continue</button></div></div>
 <div class="modal" id="checkout-modal"><div class="modal-box wide"><button class="x" data-close>×</button><div class="co-grid"><div><h3>Shipping</h3><div class="form"><input id="co-name" placeholder="Full Name"><input id="co-phone" placeholder="Phone"><input id="co-city" placeholder="City"><input id="co-address" placeholder="Address"></div><h3>Payment</h3><label class="pay-opt"><input type="radio" name="pay" value="cod" checked> Cash on Delivery</label><label class="pay-opt"><input type="radio" name="pay" value="card"> Card<div class="card-fields"><input id="cc-num" placeholder="Card number" maxlength="19"><div class="two"><input id="cc-exp" placeholder="MM/YY" maxlength="5"><input id="cc-cvc" placeholder="CVC" maxlength="4"></div><input id="cc-name" placeholder="Name on card"></div></label><label class="pay-opt"><input type="radio" name="pay" value="paypal"> PayPal</label></div><div class="co-side"><h3>Summary</h3><div id="co-items"></div><div class="row"><span>Items</span><b id="co-sub"></b></div><div class="row"><span>Discount</span><b id="co-dis">$0.00</b></div><div class="row"><span>VAT</span><b id="co-tax">$0.00</b></div><div class="row"><span>Shipping</span><b id="co-ship"></b></div><div class="row total"><span>Total</span><b id="co-total"></b></div><input id="coupon" placeholder="Coupon MEKO10"><button class="btn-primary" id="place-order">Place Order</button></div></div></div></div>
@@ -54,8 +58,11 @@
 <script src="mailer.js"></script>
 <script src="billing.js"></script>
 <script src="roles.js"></script>
+<script src="db.js"></script>
+<script src="market.js"></script>
 <script src="store.js"></script>
 <script src="auth.js"></script>
+<script src="i18n.js"></script>
 </body>
 </html>
 

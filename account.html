@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="en" id="html-root"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Account — MekoShop</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="theme.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>.wrap{max-width:1100px;margin:16px auto;padding:0 14px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.tabs button{border:0;background:#fff;padding:10px 18px;border-radius:20px;font-weight:700;cursor:pointer}.tabs button.on{background:#14142b;color:#fff}.panel{background:#fff;border-radius:16px;padding:16px}input{width:100%;padding:10px;margin:6px 0;border:1px solid #ccc;border-radius:8px}.ord{border:1px solid #eee;border-radius:12px;padding:12px;margin:8px 0;font-size:13px}.tl{display:flex;margin:8px 0}.tl div{flex:1;text-align:center;font-size:11px;padding:7px 2px;background:#f1f1f1}.tl div.on{background:linear-gradient(135deg,#6c2bff,#ff2e7e);color:#fff}</style>
+</head>
+<body>
+<header class="header"><div class="header-main"><a class="logo" href="index.html">meko<small>shop</small></a><div style="flex:1"></div><a class="hbtn" href="seller.html">Sell</a><a class="hbtn" href="admin.html" id="adm" style="display:none">Admin</a><button class="hbtn" id="logout">Logout</button></div></header>
+<div class="wrap"><h2 id="hello">My Account</h2>
+<div class="tabs"><button class="on" data-t="orders">Orders</button><button data-t="addr">Addresses</button><button data-t="wish">Wishlist</button><button data-t="profile">Profile & Security</button><button data-t="support">Support</button></div>
+<div class="panel" id="a-orders"></div>
+<div class="panel" id="a-addr" style="display:none"><div id="addr-list"></div><h4>Add address</h4><input id="ad-label" placeholder="Label (Home)"><input id="ad-name" placeholder="Name"><input id="ad-phone" placeholder="Phone"><input id="ad-city" placeholder="City"><input id="ad-addr" placeholder="Address"><button class="btn-primary" style="width:auto" id="ad-save">Save</button></div>
+<div class="panel" id="a-wish" style="display:none"><div id="wish-list"></div></div>
+<div class="panel" id="a-profile" style="display:none"><input id="pf-name" placeholder="Name"><input id="pf-phone" placeholder="Phone"><button class="btn-primary" style="width:auto" id="pf-save">Save profile</button><h4>Security</h4><button class="hbtn" id="pf-reset">Send password reset email</button> <button class="hbtn" id="pf-del" style="color:#c00">Delete my data</button><p id="pf-msg" style="font-size:13px"></p></div>
+<div class="panel" id="a-support" style="display:none"><h4>Help & Returns</h4><p style="font-size:14px">Support: <b id="sup-mail"></b> • 15-day free returns • <a href="index.html">FAQ</a></p><input id="ret-order" placeholder="Order ID (MK-...)"><input id="ret-reason" placeholder="Return reason"><button class="btn-primary" style="width:auto" id="ret-btn">Request return</button></div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="config.js"></script><script src="firebase.js"></script><script src="mailer.js"></script><script src="billing.js"></script><script src="roles.js"></script><script src="db.js"></script><script src="market.js"></script><script src="store.js"></script><script src="account.js"></script>
+</body></html>

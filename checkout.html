@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Checkout — MekoShop</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="theme.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>.cowrap{max-width:1100px;margin:16px auto;padding:0 14px;display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.panel{background:#fff;border-radius:16px;padding:18px}.steps{display:flex;gap:8px;margin-bottom:12px}.steps span{background:#eee;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:800}.steps span.on{background:#14142b;color:#fff}input,select,textarea{width:100%;padding:11px;margin:6px 0;border:1px solid #ccc;border-radius:10px}.row{display:flex;justify-content:space-between;margin:6px 0}.total{font-size:20px;border-top:1px solid #ddd;padding-top:10px}@media(max-width:860px){.cowrap{grid-template-columns:1fr}}.tl{display:flex;gap:0;margin:10px 0}.tl div{flex:1;text-align:center;font-size:11px;padding:8px 2px;background:#f1f1f1;border-radius:0}.tl div.on{background:linear-gradient(135deg,#6c2bff,#ff2e7e);color:#fff}</style>
+</head>
+<body>
+<header class="header"><div class="header-main"><a class="logo" href="index.html">meko<small>shop</small></a><div style="flex:1"></div><span style="font-weight:800">🔒 Secure Checkout</span></div></header>
+<div class="cowrap">
+<div class="panel"><div class="steps"><span class="on">1 Contact</span><span class="on">2 Address</span><span class="on">3 Shipping</span><span class="on">4 Payment</span></div>
+<h3>Contact</h3><input id="c-name" placeholder="Full name"><input id="c-phone" placeholder="Phone"><input id="c-email" placeholder="Email (receipt)">
+<h3>Address</h3><select id="c-saved"></select><input id="c-city" placeholder="City"><input id="c-addr" placeholder="Street / building / apartment"><label><input type="checkbox" id="c-saveaddr" style="width:auto"> Save address</label>
+<h3>Shipping</h3><label><input type="radio" name="ship" value="std" checked style="width:auto"> Standard 2-4 days (calc at total)</label><br><label><input type="radio" name="ship" value="exp" style="width:auto"> Express 24h (+$6)</label>
+<h3>Coupon</h3><div style="display:flex;gap:8px"><input id="c-coupon" placeholder="MEKO10"><button class="hbtn primary" id="c-apply">Apply</button></div><p id="c-msg" style="font-size:13px;color:#0a9b6c"></p>
+<h3>Payment</h3><label><input type="radio" name="pay" value="cod" checked style="width:auto"> Cash on delivery</label><br><label><input type="radio" name="pay" value="card" style="width:auto"> Card (validated, never stored)</label><div id="card-box" style="display:none"><input id="cc-num" placeholder="Card number" maxlength="19"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><input id="cc-exp" placeholder="MM/YY"><input id="cc-cvc" placeholder="CVC"></div><input id="cc-name" placeholder="Name on card"></div><label><input type="radio" name="pay" value="stripe" style="width:auto"> Stripe payment link (real)</label><br><label><input type="radio" name="pay" value="paypal" style="width:auto"> PayPal (real link)</label>
+<button class="btn-primary" id="c-place">Place order — <span id="c-totalbtn"></span></button><p style="font-size:12px;color:#666">No duplicate charges: button locks while processing. Pay status verified only via provider links/webhook — never auto-marked paid from browser redirect.</p></div>
+<div class="panel"><h3>Order summary</h3><div id="c-items"></div><div class="row"><span>Subtotal</span><b id="c-sub"></b></div><div class="row"><span>Discount</span><b id="c-dis"></b></div><div class="row"><span>VAT</span><b id="c-tax"></b></div><div class="row"><span>Shipping</span><b id="c-ship"></b></div><div class="row total"><span>Total</span><b id="c-total"></b></div><div id="c-paylinks"></div><h4>Tracking preview</h4><div class="tl"><div class="on">Pending</div><div>Paid</div><div>Shipped</div><div>Delivered</div></div></div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="config.js"></script><script src="firebase.js"></script><script src="mailer.js"></script><script src="billing.js"></script><script src="roles.js"></script><script src="db.js"></script><script src="market.js"></script><script src="store.js"></script><script src="auth.js"></script><script src="checkout.js"></script>
+</body></html>

@@ -1,25 +1,27 @@
-# MekoShop PRO — Amazon/Noon/AliExpress level (v3)
+# MekoShop Marketplace v4 — Amazon/Noon/AliExpress-level PRO build
 
-Live: https://meko277.github.io/shop/ — Admin: .../admin.html
+## Run locally (no build)
+No npm needed. Serve the folder (module-safe) and open:
+- `index.html` storefront • `product.html?id=...` • `checkout.html` • `success.html` • `account.html` • `seller.html` • `admin.html`
+- Windows: `cd shop` then `python -m http.server 8000` → http://localhost:8000/index.html (or just double-click index.html)
 
-## Roles (Firebase Auth)
-- Register = CUSTOMER (email verify + welcome email). Admin button hidden.
-- "Become a seller" → real email sent to OWNER → Admin panel > Users > ✅ Approve → user gets Admin button + approval email.
-- Owner emails auto-admin. Put YOUR email in Admin > Settings > Owner email (or config.js OWNER_EMAILS).
-- Legacy admin pass `1234` still works.
+## Tests
+- `node tests/run.js` — billing, coupons, roles, splits, tracking machine (pure logic, offline).
+- Firestore rules: `firestore.rules` — deploy manually in Firebase console (Firestore > Rules). Rule test via emulator optional (see SCHEMA.md).
 
-## Real email (no backend, GitHub Pages OK)
-- EmailJS: emailjs.com → connect Gmail → template vars: to_email,to_name,subject,message,order_id,total → paste keys in Admin > Settings.
-- Covers: welcome, order confirmations, offer blasts, admin-request to owner, approval mail. Full log in Admin > Mail Log (+ RTDB mail_outbox).
+## Configure (Firebase shop-98ce2 already wired)
+1. Firebase console > Authentication: enable Email/Password + Google. Add authorized domain `meko277.github.io`.
+2. Firestore: create database > paste `firestore.rules` > publish. (RTDB test mode optional legacy.)
+3. Admin > Settings: owner email (yours prefilled), EmailJS keys, Stripe Payment Link, PayPal link, VAT, shipping, commission.
+4. EmailJS: emailjs.com > connect Gmail > template vars to_email,to_name,subject,message,order_id,total.
+5. Stripe: Dashboard > Payment Links > paste link. PayPal: paypal.me link.
 
-## Real billing (no backend)
-- Checkout: subtotal − coupon + VAT + shipping, printable invoice per order, CSV export, PAID badges.
-- Stripe: Dashboard > Payment Links > paste link in Settings → pay button appears after order. PayPal: paste paypal.me link. Cards validated (Luhn).
+## Deploy (GitHub Pages)
+Push `main`, Settings > Pages > Deploy from branch main/root → https://meko277.github.io/shop/
 
-## Firebase console checklist
-Auth: Email/Password + Google ON. Realtime Database: test mode. (RTDB nodes: users, roles, admin_requests, products, orders, notifications, subscribers, settings, mail_outbox)
+## Security notes
+- Roles enforced in firestore.rules + seller isolation in market.js/seller.js (sellerApproved gate). Admin button hidden AND gated.
+- No secrets in repo (.env.example only placeholders). Never store cards/CVV. Paid state only via provider flow.
 
-## Files
-config.js, firebase.js, mailer.js, billing.js, roles.js, store.js, auth.js, admin.js, index.html, admin.html, styles.css, theme.css
 
 
