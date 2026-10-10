@@ -1,0 +1,26 @@
+/* MekoShop v2 theme (appended overrides + new components) */
+.hero-wrap{max-width:1280px;margin:16px auto;padding:0 18px;display:grid;grid-template-columns:1.6fr .9fr;gap:14px}
+.hero{background:linear-gradient(120deg,#1b1040,#5b21ff 55%,#ff2e7e);border-radius:22px;color:#fff;position:relative;overflow:hidden;min-height:300px;display:flex;align-items:center}
+.hero-slider{position:relative;width:100%;height:300px}.slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:26px 28px;opacity:0;transition:.5s;transform:translateX(30px)}.slide.active{opacity:1;transform:none}.slide h1{font-size:40px;line-height:1.05}.slide p{opacity:.85;margin:8px 0 14px}.slide button{background:#fff;border:0;padding:12px 22px;border-radius:14px;font-weight:800;cursor:pointer}.slide img{height:200px;width:280px;object-fit:cover;border-radius:16px;box-shadow:var(--sh)}
+.hero-side{display:grid;gap:14px}.mini-banner{border-radius:22px;padding:18px;color:#fff;min-height:143px;display:flex;flex-direction:column;justify-content:center;box-shadow:var(--sh)}.mini-banner.b1{background:linear-gradient(135deg,#00c6ff,#0072ff)}.mini-banner.b2{background:linear-gradient(135deg,#ff8a00,#ff2e7e)}
+.auth-modal input{width:100%;padding:12px;margin:7px 0;border:1.5px solid #e3e0f3;border-radius:12px}
+.offer-bar{max-width:1280px;margin:0 auto;padding:0 18px}.offer-card{background:linear-gradient(90deg,#14142b,#3b1d8f);color:#fff;border-radius:18px;padding:14px 18px;display:flex;gap:12px;align-items:center;margin-top:14px}
+.bell-dot{position:absolute;top:-6px;right:-4px;background:var(--red);color:#fff;font-size:10px;min-width:18px;height:18px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.note{background:#f7f5ff;border:1px solid #e6e1fb;border-radius:14px;padding:12px;margin:8px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.card{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);border:1px solid #eeeafc;display:flex;flex-direction:column;transition:.2s}
+.card:hover{transform:translateY(-4px)}
+.card .img{height:210px;position:relative;cursor:pointer;overflow:hidden}.card .img img{width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;top:10px;left:10px;background:linear-gradient(90deg,var(--brand2),#ff8a00);color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px}
+.wish{position:absolute;top:10px;right:10px;background:#fff;border:0;width:34px;height:34px;border-radius:50%;cursor:pointer;box-shadow:var(--sh)}.wish.liked{color:var(--brand2)}
+.card-body{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.price{color:#14142b;font-weight:900;font-size:19px}.old{color:var(--mut);text-decoration:line-through;font-size:13px}
+.add{background:linear-gradient(135deg,var(--brand1),var(--brand2));color:#fff;border:0;border-radius:14px;padding:11px;font-weight:800;cursor:pointer;margin-top:auto}
+@media(max-width:900px){.hero-wrap{grid-template-columns:1fr}.slide h1{font-size:26px}.slide img{width:150px;height:130px}}
+.brand-wall{max-width:1280px;margin:14px auto;padding:0 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.brand-wall div{background:#fff;border:1px solid #eeeafc;border-radius:14px;padding:12px;text-align:center;font-weight:800;box-shadow:var(--sh)}
+.card .img img{transition:.35s}.card:hover .img img{transform:scale(1.06)}
+.deals-bar,.toolbar,.perks{box-shadow:var(--sh);border:1px solid #eeeafc}
+.toolbar{border-radius:22px}.deals-bar{border-radius:22px;background:linear-gradient(180deg,#fff,#fff7f0)}
+.pro-badges{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}.pro-badges span{background:rgba(255,255,255,.25);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700}
+

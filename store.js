@@ -12,9 +12,13 @@ const DEFAULT_PRODUCTS = [
 {id:"p8",name:"LEGO Technic Supercar Building Set",cat:"Toys",price:149,old:199,rating:4.9,reviews:2210,img:"https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=600",badge:"",stock:30,desc:"3778 pieces, V12 engine model."},
 {id:"p9",name:"MacBook Air M3 13 inch 8GB 256GB",cat:"Electronics",price:999,old:1099,rating:4.9,reviews:1876,img:"https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600",badge:"New",stock:20,desc:"M3 chip, 18h battery, fanless."},
 {id:"p10",name:"Adidas Ultraboost Light Running Shoes",cat:"Fashion",price:110,old:190,rating:4.6,reviews:1543,img:"https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600",badge:"-42%",stock:45,desc:"Lightest Ultraboost ever."},
+{id:"p11",name:"Philips Airfryer XL 6.2L",cat:"Home",price:129,old:199,rating:4.5,reviews:4320,img:"https://images.unsplash.com/photo-1626074353765-517a681e40be?w=600",badge:"",stock:35,desc:"Healthy frying with 90% less fat."},
+{id:"p12",name:"CeraVe Moisturizing Skincare Set",cat:"Beauty",price:29,old:45,rating:4.7,reviews:6720,img:"https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600",badge:"",stock:80,desc:"Dermatologist developed daily care."}
+];
+/* MekoShop store engine v2 — billing-aware, role-aware. */
 const $=id=>document.getElementById(id);
-const money=n=>"$"+Number(n).toFixed(2);
-const getProducts=()=>{try{const s=localStorage.getItem("meko_products");if(s)return JSON.parse(s)}catch(e){}return DEFAULT_PRODUCTS.slice()};
+const money=n=>(typeof cfg==="function"?(cfg().CURRENCY||"$"):"$")+Number(n||0).toFixed(2);
+const getProducts=()=>{try{const s=localStorage.getItem("meko_products");if(s&&JSON.parse(s).length)return JSON.parse(s)}catch(e){}return DEFAULT_PRODUCTS.slice()};
 const saveProducts=p=>localStorage.setItem("meko_products",JSON.stringify(p));
 const getCart=()=>{try{return JSON.parse(localStorage.getItem("meko_cart")||"[]")}catch(e){return[]}};
 const saveCart=c=>localStorage.setItem("meko_cart",JSON.stringify(c));
@@ -57,23 +61,35 @@ $("p-detail").innerHTML=`<div class="p-box-grid"><img src="${p.img}" onerror="th
 openM("product-modal")}
 function qvQty(d){const e=$("qv-n");e.textContent=Math.max(1,Math.min(10,parseInt(e.textContent)+d))}
 let couponOff=0;
+function cartSub(){const P=getProducts(),c=getCart();return c.reduce((s,i)=>{const p=P.find(x=>x.id===i.id);return s+(p?p.price*i.qty:0)},0)}
+function currentBill(){const sub=cartSub();const code=($("coupon")?$("coupon").value:"").trim().toUpperCase();couponOff=code==="MEKO10"?sub*0.10:code==="SAVE20"?sub*0.20:0;return billTotals(sub,couponOff)}
 function openCheckout(){const c=getCart();if(!c.length)return toast("Cart is empty");const P=getProducts();
 $("co-items").innerHTML=c.map(i=>{const p=P.find(x=>x.id===i.id);return `<div class="row"><span>${p.name.slice(0,28)}.. x ${i.qty}</span><b>${money(p.price*i.qty)}</b></div>`}).join("");
 refreshTotals();openM("checkout-modal")}
-function refreshTotals(){const P=getProducts(),c=getCart();const sub=c.reduce((s,i)=>{const p=P.find(x=>x.id===i.id);return s+(p?p.price*i.qty:0)},0);
-const code=$("coupon").value.trim().toUpperCase();couponOff=code==="MEKO10"?sub*0.10:code==="SAVE20"?sub*0.20:0;
+function refreshTotals(){const b=currentBill();
+$("co-sub").textContent=money(b.sub);$("co-ship").textContent=b.ship===0?"FREE":money(b.ship);
+$("co-total").textContent=money(b.total);
+const taxEl=$("co-tax");if(taxEl)taxEl.textContent=money(b.tax);
+const disEl=$("co-dis");if(disEl)disEl.textContent="−"+money(b.discount);}
 function validCard(n){n=n.replace(/\s/g,"");if(!/^\d{13,19}$/.test(n))return false;let s=0,d=false;for(let i=n.length-1;i>=0;i--){let x=+n[i];if(d){x*=2;if(x>9)x-=9}s+=x;d=!d}return s%10===0}
 function placeOrder(){const name=$("co-name").value.trim(),phone=$("co-phone").value.trim(),city=$("co-city").value.trim(),addr=$("co-address").value.trim();
 if(name.length<3)return toast("Enter full name");if(phone.length<7)return toast("Enter valid phone");if(!city)return toast("Enter city");if(addr.length<5)return toast("Enter address");
 const pay=document.querySelector('input[name=pay]:checked').value;
-if(pay==="card"){if(!validCard($("cc-num").value))return toast("Invalid card number");if(!/^\d{2}\/\d{2}$/.test($("cc-exp").value))return toast("Expiry MM/YY");if(!/^\d{3,4}$/.test($("cc-cvc").value))return toast("Invalid CVC");if($("cc-name").value.length<3)return toast("Name on card required");if(STRIPE_PUBLIC_KEY)toast("Processing via Stripe...")}
-const P=getProducts(),c=getCart();const sub=c.reduce((s,i)=>{const p=P.find(x=>x.id===i.id);return s+(p?p.price*i.qty:0)},0);
-const ship=sub-couponOff>=FREE_SHIP?0:SHIP_FEE;const total=Math.max(0,sub-couponOff+ship);
-const order={id:"MK-"+Date.now().toString().slice(-8),date:new Date().toLocaleString(),name,phone,city,addr,pay,items:c.map(i=>{const p=P.find(x=>x.id===i.id);return{name:p.name,price:p.price,qty:i.qty,img:p.img}}),sub,discount:couponOff,ship,total,status:"Pending"};
+if(pay==="card"){if(!validCard($("cc-num").value))return toast("Invalid card number");if(!/^\d{2}\/\d{2}$/.test($("cc-exp").value))return toast("Expiry MM/YY");if(!/^\d{3,4}$/.test($("cc-cvc").value))return toast("Invalid CVC");if($("cc-name").value.length<3)return toast("Name on card required")}
+const b=currentBill();
+const P=getProducts(),c=getCart();
+const me=(typeof currentUser==="function"&&currentUser())||{};
+const order={id:"MK-"+Date.now().toString().slice(-8),date:new Date().toLocaleString(),name,phone,city,addr,pay,email:me.email||"",uid:me.uid||me.email||"guest",items:c.map(i=>{const p=P.find(x=>x.id===i.id);return{name:p.name,price:p.price,qty:i.qty,img:p.img}}),sub:b.sub,discount:b.discount,tax:b.tax,taxRate:b.taxRate,ship:b.ship,total:b.total,status:"Pending",paid:pay!=="cod"};
 c.forEach(i=>{const p=P.find(x=>x.id===i.id);if(p)p.stock=Math.max(0,p.stock-i.qty)});saveProducts(P);
-const o=getOrders();o.unshift(order);saveOrders(o);saveCart([]);updateBadges();renderCart();closeAll();
-$("success-txt").textContent=`Order ${order.id} • ${money(total)} • ${pay==="cod"?"Pay on delivery":pay} • Arriving in 2-4 days to ${city}`;
-openM("success-modal")}
+const o=getOrders();o.unshift(order);saveOrders(o);
+const db=(typeof fbDb==="function"&&fbDb());if(db){try{db.ref("orders/"+order.id).set(order)}catch(e){}}
+saveCart([]);updateBadges();renderCart();closeAll();
+$("success-txt").innerHTML=`Order <b>${order.id}</b> • ${money(order.total)} • ${pay==="cod"?"Pay on delivery":pay.toUpperCase()} • Arriving in 2-4 days to ${city}<br><small>A confirmation email was sent${realPayLinks()? " • real pay links below":""}</small><div id="pay-links" style="margin-top:10px"></div><br><button class="btn-ghost" style="width:auto;padding:8px 18px" onclick="printInvoice('${order.id}')">🧾 Print invoice</button>`;
+openM("success-modal");
+// real confirmation email (EmailJS if configured) + real pay links
+try{const t=tplOrder(order);const to=order.email||((me&&me.email)||"");if(to)sendMail(to,t.subject,t.message,{name:order.name,orderId:order.id,total:money(order.total)}).then(r=>{if(!r.ok&&r.via==="mailto")toast("Email not configured — see Admin>Settings")})}catch(e){}
+try{const pl=document.getElementById("pay-links");const links=realPayLinks(order.total);if(pl&&links.length)pl.innerHTML=links.map(l=>`<a href="${l.url}" target="_blank" class="btn-primary" style="display:block;text-decoration:none;text-align:center;margin:6px 0">${l.name} • ${money(order.total)}</a>`).join("")}catch(e){}
+}
 function showList(kind){const P=getProducts();
 if(kind==="wish"){const w=getWish();$("list-title").textContent="My Wishlist";$("list-body").innerHTML=w.length?w.map(id=>{const p=P.find(x=>x.id===id);if(!p)return"";return `<div class="c-item"><img src="${p.img}"><div class="inf"><b>${p.name}</b><span class="price">${money(p.price)}</span><br><button class="btn-primary" style="width:auto;padding:8px 18px" onclick="addToCart('${p.id}')">Add to Cart</button></div></div>`}).join(""):"Wishlist empty"}
 else{const o=getOrders();$("list-title").textContent="My Orders";$("list-body").innerHTML=o.length?o.map(x=>`<div style="border:1px solid #ddd;border-radius:10px;padding:12px;margin:8px 0"><b>${x.id}</b> <span style="background:#fef3c7;padding:2px 10px;border-radius:12px;font-size:12px">${x.status}</span><br><small>${x.date} • ${money(x.total)} • ${x.pay.toUpperCase()}</small><br><small>${x.items.map(i=>i.name.slice(0,30)).join(", ")}</small></div>`).join(""):"No orders yet"}
@@ -92,27 +108,17 @@ $("wishlist-btn").onclick=()=>showList("wish");$("orders-btn").onclick=()=>showL
 $("track-btn").onclick=()=>{closeAll();showList("orders")};
 $("filter-cat").onchange=e=>{state.cat=e.target.value;renderAll()};
 $("filter-sort").onchange=e=>{state.sort=e.target.value;renderAll()};
-$("price-go").onclick=()=>{state.min=+$("min-p").value||0;state.max=+$("max-p").value||0;renderAll()};
+const _pg=$("price-go");if(_pg)_pg.onclick=()=>{state.min=+$("min-p").value||0;state.max=+$("max-p").value||0;renderAll()};
 $("hero-prev").onclick=()=>heroGo(heroI-1);$("hero-next").onclick=()=>heroGo(heroI+1);
 $("search-btn").onclick=()=>{state.q=$("search-input").value.toLowerCase().trim();state.cat=$("search-cat").value;renderAll();scrollToProducts()};
-$("search-input").addEventListener("input",e=>{const q=e.target.value.toLowerCase();const box=$("search-suggest");if(q.length<2){box.style.display="none";return}
+$("search-input").addEventListener("input",e=>{const q=e.target.value.toLowerCase();const box=$("search-suggest");if(!box)return;if(q.length<2){box.style.display="none";return};
 const m=getProducts().filter(p=>p.name.toLowerCase().includes(q)).slice(0,6);
 box.innerHTML=m.map(p=>`<div onclick="document.getElementById('search-input').value='${p.name.replace(/'/g,"")}';document.getElementById('search-btn').click()">${p.name.slice(0,50)}</div>`).join("")||"<div>No matches</div>";box.style.display="block"});
-$("cc-num").addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,16).replace(/(\d{4})(?=\d)/g,"$1 ")});
-$("cc-exp").addEventListener("input",e=>{let v=e.target.value.replace(/\D/g,"").slice(0,4);if(v.length>2)v=v.slice(0,2)+"/"+v.slice(2);e.target.value=v});
+const _cn=$("cc-num");if(_cn)_cn.addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,16).replace(/(\d{4})(?=\d)/g,"$1 ")});
+const _ce=$("cc-exp");if(_ce)_ce.addEventListener("input",e=>{let v=e.target.value.replace(/\D/g,"").slice(0,4);if(v.length>2)v=v.slice(0,2)+"/"+v.slice(2);e.target.value=v});
 });
-
-const ship=sub-couponOff>=FREE_SHIP||sub===0?0:SHIP_FEE;
-$("co-sub").textContent=money(sub);$("co-ship").textContent=ship===0?"FREE":money(ship);$("co-total").textContent=money(Math.max(0,sub-couponOff+ship))}
-
-updateBadges();
-}
 function filterCat(c){state.cat=c;state.q="";$("search-input").value="";renderAll();document.getElementById("products").scrollIntoView({behavior:"smooth"})}
 function scrollToProducts(){document.getElementById("products").scrollIntoView({behavior:"smooth"})}
 function toggleWish(id){let w=getWish();w=w.includes(id)?w.filter(x=>x!==id):[...w,id];saveWish(w);renderAll();toast(w.includes(id)?"Added to wishlist ♥":"Removed from wishlist")}
 function addToCart(id,qty=1){const P=getProducts();const p=P.find(x=>x.id===id);if(!p)return;if(p.stock<=0)return toast("Out of stock");let c=getCart();const f=c.find(x=>x.id===id);if(f)f.qty=Math.min(f.qty+qty,p.stock);else c.push({id,qty});saveCart(c);updateBadges();renderCart();toast("Added to cart 🛒")}
 function updateBadges(){const c=getCart();$("cart-count").textContent=c.reduce((s,x)=>s+x.qty,0);$("d-count").textContent=c.reduce((s,x)=>s+x.qty,0);$("wish-count").textContent=getWish().length}
-
-{id:"p11",name:"Philips Airfryer XL 6.2L",cat:"Home",price:129,old:199,rating:4.5,reviews:4320,img:"https://images.unsplash.com/photo-1626074353765-517a681e40be?w=600",badge:"",stock:35,desc:"Healthy frying with 90% less fat."},
-{id:"p12",name:"CeraVe Moisturizing Skincare Set",cat:"Beauty",price:29,old:45,rating:4.7,reviews:6720,img:"https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600",badge:"",stock:80,desc:"Dermatologist developed daily care."}
-];
